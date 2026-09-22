@@ -13,7 +13,7 @@
  */
 #include <bits/stdc++.h>
 
-using namespace std; 
+using namespace std;
 
 /**
  * @brief Approach:
@@ -48,8 +48,7 @@ private:
         dll.push_back(kv);
         mp[key] = prev(dll.end());
     }
-
-public: 
+public:
     LRUCache(int capacity) : capacity(capacity){}
 
     int get(int key){
@@ -68,7 +67,7 @@ public:
         }
 
         auto it = mp.find(key);
-        
+
         if (it != mp.end()){
             /* key already exists: update value and mark as most recently used*/
             it->second->second = value;
@@ -85,3 +84,105 @@ public:
         }
     }
 };
+
+/**
+ * @brief Test the LRUCache class
+ * @details
+ * - Test the LRUCache class with the example provided in the LeetCode problem
+ * - Test the LRUCache class with the example provided in the LeetCode problem
+*/
+
+namespace {
+
+struct TestRunner {
+    int passed = 0;
+    int failed = 0;
+
+    void expect_eq(int actual, int expected, const char* expr, int line) {
+        if (actual == expected) {
+            ++passed;
+            return;
+        }
+        ++failed;
+        cerr << "LRUCache.cpp:" << line << ": " << expr
+             << " == " << actual << ", expected " << expected << "\n";
+    }
+};
+
+/* Define the EXPECT_EQ macro to test the equality of the actual and expected values*/
+#define EXPECT_EQ(actual, expected) \
+    runner.expect_eq((actual), (expected), #actual, __LINE__)
+
+/* Test the LRUCache class with the example provided in the LeetCode problem*/
+void test_leetcode_example(TestRunner& runner) {
+    LRUCache cache(2);
+    cache.put(1, 1);
+    cache.put(2, 2);
+    EXPECT_EQ(cache.get(1), 1);
+    cache.put(3, 3);          /* evicts key 2 */
+    EXPECT_EQ(cache.get(2), -1);
+    cache.put(4, 4);          /* evicts key 1 */
+    EXPECT_EQ(cache.get(1), -1);
+    EXPECT_EQ(cache.get(3), 3);
+    EXPECT_EQ(cache.get(4), 4);
+}
+
+/* Test the get method with a miss*/
+void test_get_miss_is_negative_one(TestRunner& runner) {
+    LRUCache cache(2);
+    EXPECT_EQ(cache.get(42), -1);
+}
+
+/* Test the put method with an existing key*/
+void test_put_updates_existing_key_without_evicting(TestRunner& runner) {
+    LRUCache cache(2);
+    cache.put(1, 1);
+    cache.put(2, 2);
+    cache.put(1, 10);
+    EXPECT_EQ(cache.get(1), 10);
+    EXPECT_EQ(cache.get(2), 2);
+}
+
+/* Test the get method with a hit*/
+void test_get_marks_key_most_recently_used(TestRunner& runner) {
+    LRUCache cache(2);
+    cache.put(1, 1);
+    cache.put(2, 2);
+    EXPECT_EQ(cache.get(1), 1); /* 1 is now MRU, 2 is LRU */
+    cache.put(3, 3);            /* evicts 2, not 1 */
+    EXPECT_EQ(cache.get(2), -1);
+    EXPECT_EQ(cache.get(1), 1);
+    EXPECT_EQ(cache.get(3), 3);
+}
+
+/* Test the capacity one evicts on every new key*/
+void test_capacity_one_evicts_on_every_new_key(TestRunner& runner) {
+    LRUCache cache(1);
+    cache.put(1, 1);
+    EXPECT_EQ(cache.get(1), 1);
+    cache.put(2, 2);
+    EXPECT_EQ(cache.get(1), -1);
+    EXPECT_EQ(cache.get(2), 2);
+}
+
+/* Test the capacity zero stores nothing*/
+void test_capacity_zero_stores_nothing(TestRunner& runner) {
+    LRUCache cache(0);
+    cache.put(1, 1);
+    EXPECT_EQ(cache.get(1), -1);
+}
+
+}  // namespace
+
+int main(void) {
+    TestRunner runner;
+    test_leetcode_example(runner);
+    test_get_miss_is_negative_one(runner);
+    test_put_updates_existing_key_without_evicting(runner);
+    test_get_marks_key_most_recently_used(runner);
+    test_capacity_one_evicts_on_every_new_key(runner);
+    test_capacity_zero_stores_nothing(runner);
+
+    cout << runner.passed << " passed, " << runner.failed << " failed\n";
+    return runner.failed == 0 ? 0 : 1;
+}
